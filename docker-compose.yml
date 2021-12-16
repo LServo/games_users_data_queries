@@ -1,0 +1,35 @@
+version: "3.8"
+
+services:
+  queries_challenge:
+    image: postgres # imagem já existe no docker hub
+    container_name: queries_challenge
+    restart: always
+    ports:
+      - 5432:5432
+    environment:
+      # variáveis disponíveis para uso estão na documentação 
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=docker
+      - POSTGRES_DB=queries_challenge
+    volumes:
+      - pgdata:/data/postgres
+  app:
+    # orquestra a imagem criada no Dockerfile
+    build: . # executa o mesmo comando do terminal na nossa raiz (docker build -t rentx .)
+    container_name: chapteriii
+    ports:
+      - 3000:3000 # mapeamento de portas
+    volumes:
+      - .:/usr/app # . -> pegando todas as informações do diretório atual | :/usr/app -> passando para o WORKDIR criado
+    links:
+      #ligação entre containers, permitindo que o container de destino (api) tenha informações do container de origem(database). 
+      - queries_challenge
+    depends_on:
+      #define que o app depende do database, isso fará com que a ordem para os containers subirem seja primeiro o serviço database e depois o da api.
+      - queries_challenge
+
+volumes:
+  # referência para o volume criado no database
+  pgdata:
+    driver: local
